@@ -1,0 +1,47 @@
+# Compiled Object files
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+vector_add
+
+# CUDA compiled files
+*.cubin
+*.cu.o
+*.ptx
+*.fatbin
+
+# Debug files
+*.dSYM/
+*.su
+
+# Temporary files
+*~
+*.swp
+*.swo
+.DS_Store
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-*
+
+# Build directories
+build/
+bin/
+obj/
+
+# Replit files (keep these)
+!.replit
+!replit.nix
