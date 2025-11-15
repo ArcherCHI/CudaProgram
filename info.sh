@@ -1,0 +1,38 @@
+#!/bin/bash
+
+echo "=========================================="
+echo "CUDA C Vector Addition Project"
+echo "=========================================="
+echo ""
+echo "This project contains a CUDA C program for GPU-accelerated vector addition."
+echo ""
+echo "📁 Project Files:"
+echo "  - vector_add.cu    : Main CUDA C source file"
+echo "  - Makefile         : Build configuration"
+echo "  - README.md        : Detailed documentation"
+echo ""
+echo "⚠️  IMPORTANT NOTICE:"
+echo "This code requires:"
+echo "  • NVIDIA GPU with CUDA support"
+echo "  • CUDA Toolkit (nvcc compiler)"
+echo "  • Compatible GPU drivers"
+echo ""
+echo "🔍 Checking for CUDA Toolkit..."
+if command -v nvcc &> /dev/null; then
+    echo "✓ CUDA Toolkit found!"
+    nvcc --version
+    echo ""
+    echo "To compile: make"
+    echo "To run: ./vector_add"
+else
+    echo "✗ CUDA Toolkit not available in this environment"
+    echo ""
+    echo "📚 To run this code, you can:"
+    echo "  1. Download to a local machine with NVIDIA GPU"
+    echo "  2. Use Google Colab with GPU runtime"
+    echo "  3. Use cloud GPU services (AWS, Azure, etc.)"
+    echo ""
+fi
+echo "=========================================="
+echo "📖 Read README.md for complete instructions"
+echo "=========================================="
