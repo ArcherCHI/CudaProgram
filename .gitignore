@@ -32,6 +32,11 @@ vector_add
 *.swo
 .DS_Store
 
+# Private keys and certificates
+*.pem
+*.key
+*.cert
+
 # IDE and editor files
 .vscode/
 .idea/

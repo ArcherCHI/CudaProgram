@@ -23,3 +23,6 @@ args = "bash info.sh"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[nix]
+packages = ["openssh"]
