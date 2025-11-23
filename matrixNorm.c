@@ -51,7 +51,7 @@ __global__ void matrixNorm( float *devA, float *devB ) {
         
         sigma = 0.0;
         for (row=0; row < N; row++)
-            sigma += powf(A[idx] - mu, 2.0);
+            sigma += powf( devA[idx] - mu, 2.0);
         sigma /= (float) N;
         __syncthreads();
         
@@ -106,11 +106,11 @@ int main(int argc, char **argv) {
     dim3 dimGrid( N / numThreads, N / numThreads );
     
     // 1. Allocate memory space in host (CPU) for data
-    float *host    // host data
+    float *host;    // host data
     host = (float*)malloc(N*N*sizeof(float));
     
     // 2. Allocate memory space in device (GPU) for data
-    float *deviceA, *deviceNorm    // device data
+    float *deviceA, *deviceNorm;    // device data
     cudaMalloc((void**) &deviceA, N*N*sizeof(float));
     cudaMalloc((void**) &deviceNorm, N*N*sizeof(float));
     
@@ -120,7 +120,7 @@ int main(int argc, char **argv) {
     /* Matrix Normalization */
     // 4. Execute kernel function in device    
         // - with CUDA syntax that defines number of threads and their physical structure
-    matrixNorm<<<numBlocks, numThreads>>>(deviceA, deviceNorm);
+    matrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceNorm);
     
     // 5. Copy data from device to host
     cudaMemcpy( host, deviceNorm, N*N*sizeof(float), cudaMemcpyDeviceToHost );
