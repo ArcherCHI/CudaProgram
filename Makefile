@@ -3,8 +3,8 @@
 # Compiler and flags
 NVCC = nvcc
 NVCCFLAGS = -O2 -arch=sm_50 -std=c++11
-TARGET = vector_add
-SOURCE = vector_add.cu
+TARGET = matrixNorm
+SOURCE = matrixNorm.cu
 
 # Default target
 all: $(TARGET)
