@@ -10,6 +10,7 @@
 
 /* Program Parameters */
 #define N 6000  /* Matrix size */
+#define numThreads 16 /* Number of threads per block */
 
 /* Matrices */
 volatile float A[N][N], B[N][N];
@@ -98,10 +99,7 @@ int main(int argc, char **argv) {
     gettimeofday(&start, &tzdummy);
 
     // Define block and grid size
-    const int numBlocks = 16;
-    const int numThreads = 16;    // Threads per block
     dim3 dimBlock( numThreads, numThreads );
-    // dim3 dimGrid( numBlocks, numBlocks );
     dim3 dimGrid( N / numThreads, N / numThreads );
     
     // 1. Allocate memory space in host (CPU) for data
