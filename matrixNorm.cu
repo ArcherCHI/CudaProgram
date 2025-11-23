@@ -57,7 +57,7 @@ __global__ void matrixNorm( float *devA, float *devB ) {
         
         sigma = sqrt(sigma);
         for (
-            lsrow=0; row < N; row++) {
+            row=0; row < N; row++) {
             int idx2 = row * N + col;
             if (sigma == 0.0)
                 devB[idx2] = 0.0;
