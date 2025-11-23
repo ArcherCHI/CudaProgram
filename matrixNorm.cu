@@ -121,9 +121,10 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
             int idx = r * N + col;
             if (sigma == 0.0)
                 devB[idx] = 0.0;
-            else
-                cudaMemcpy( devB[idx], ( devA[idx] - mu ) / sigma, sizeof(float), cudaMemcpyDeviceToDevice );
-                // devB[idx] = ( devA[idx] - mu ) / sigma;
+            else {
+                float currVal = devA[idx];
+                // cudaMemcpy( devB[idx], ( currVal - mu ) / sigma, sizeof(float), cudaMemcpyDeviceToDevice );
+                devB[idx] = ( currVal - mu ) / sigma;
         }
     }
 
