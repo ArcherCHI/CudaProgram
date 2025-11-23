@@ -122,7 +122,8 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
             if (sigma == 0.0)
                 devB[idx] = 0.0;
             else
-                devB[idx] = ( devA[idx] - mu ) / sigma;
+                cudaMemcpy( devB[idx], ( devA[idx] - mu ) / sigma, sizeof(float), cudaMemcpyDeviceToDevice );
+                // devB[idx] = ( devA[idx] - mu ) / sigma;
         }
     }
 
@@ -183,12 +184,6 @@ int main(int argc, char **argv) {
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, (void*) A, matrixSize, cudaMemcpyHostToDevice );
     cudaMemcpy( deviceB, (void*) B, matrixSize, cudaMemcpyHostToDevice );
-
-    // Let deviceB access deviceA
-    cudaSetDevice( deviceB );
-    cudaError_t err = cudaDeviceEnablePeerAccess( deviceA, 0 );
-    if ( err != cudaSuccess )
-        printf("Error: %s\n", cudaGetErrorString(err) );
     
     // Print initial matrices ( for debugging )
     printMatrices();
