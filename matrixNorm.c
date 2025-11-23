@@ -121,7 +121,7 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
             if (sigma == 0.0)
                 devB[idx2] = 0.0;
             else
-                devB[idx2] = ( devA[idx] - mu ) / sigma;
+                devB[idx2] = ( devA[r * N + col] - mu ) / sigma;
         }
     }
 
