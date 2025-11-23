@@ -103,20 +103,21 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
 
     if ( row < N && col < N ) {
         mu = 0.0;
-        for ( row = 0; row < N; row++ )
-            mu += devA[row * N + col];
+        int r;
+        for ( r = 0; r < N; r++ )
+            mu += devA[r * N + col];
         mu /= (float) N;
         __syncthreads();
         
         sigma = 0.0;
-        for ( row = 0; row < N; row++)
-            sigma += powf( devA[idx] - mu, 2.0 );
+        for ( r = 0; r < N; r++)
+            sigma += powf( devA[r * N + col] - mu, 2.0 );
         sigma /= (float) N;
         __syncthreads();
         
         sigma = sqrt(sigma);
-        for ( row = 0; row < N; row++ ) {
-            int idx2 = row * N + col;
+        for ( r = 0; r < N; r++ ) {
+            int idx2 = r * N + col;
             if (sigma == 0.0)
                 devB[idx2] = 0.0;
             else
@@ -155,7 +156,7 @@ int main(int argc, char **argv) {
     gettimeofday(&start, &tzdummy);
 
 
-    const int numBlocks = N + numThreads - 1 / numThreads;
+    const int numBlocks = ( N + numThreads - 1 ) / numThreads;
     
     // Define block and grid size
     dim3 dimBlock( numThreads, numThreads );
