@@ -1,7 +1,6 @@
 /* Matrix normalization.
  * Compile with "gcc matrixNorm.c"
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -184,14 +183,23 @@ int main(int argc, char **argv) {
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, (void*) A, matrixSize, cudaMemcpyHostToDevice );
     cudaMemcpy( deviceB, (void*) B, matrixSize, cudaMemcpyHostToDevice );
+
+    // Let deviceB access deviceA
+    cudaSetDevice( deviceB );
+    cudaError_t err = cudaDeviceEnablePeerAccess( deviceA, 0 );
+    if ( err != cudaSuccess )
+        printf("Error: %s\n", cudaGetErrorString(err) );
+    
+    // Print initial matrices ( for debugging )
     printMatrices();
     printParallelMatrices( hostA, hostB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device   
-    printf("Computing Parallelly.\n");
+    printf("Parallel Computing...\n");
     parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
     sequentialMatrixNorm();
+    
     // 5. Copy data from device to host
     cudaMemcpy( hostA, deviceA, matrixSize, cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, matrixSize, cudaMemcpyDeviceToHost );
