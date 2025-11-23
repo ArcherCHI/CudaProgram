@@ -1,6 +1,7 @@
 /* Matrix normalization.
  * Compile with "gcc matrixNorm.c"
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -123,8 +124,8 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
                 devB[idx] = 0.0;
             else {
                 float currVal = devA[idx];
-                // cudaMemcpy( devB[idx], ( currVal - mu ) / sigma, sizeof(float), cudaMemcpyDeviceToDevice );
                 devB[idx] = ( currVal - mu ) / sigma;
+            }
         }
     }
 
@@ -168,14 +169,15 @@ int main(int argc, char **argv) {
     float *hostA, *hostB;    // host data
     hostA = (float*)malloc( matrixSize );
     hostB = (float*)malloc( matrixSize );
-
-    int x, y;
-    for ( x=0; x < N; x++ ){
-        for ( y = 0; y < N; y++ ){
-            hostA[x*N + y] = A[x][y];
-            hostB[x*N + y] = 0.0;
-        }
-    }
+    cudaMemcpy( hostA, (void*) A, matrixSize, cudaMemcpyHostToDevice );
+    cudaMemcpy( hostB, (void*) B, matrixSize, cudaMemcpyHostToDevice );
+    // int x, y;
+    // for ( x=0; x < N; x++ ){
+    //     for ( y = 0; y < N; y++ ){
+    //         hostA[x*N + y] = A[x][y];
+    //         hostB[x*N + y] = 0.0;
+    //     }
+    // }
     
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
@@ -183,12 +185,12 @@ int main(int argc, char **argv) {
     cudaMalloc( &deviceB, matrixSize );
     
     // 3. Copy data from host to device
-    cudaMemcpy( deviceA, (void*) A, matrixSize, cudaMemcpyHostToDevice );
-    cudaMemcpy( deviceB, (void*) B, matrixSize, cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceA, hostA, matrixSize, cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceB, hostB, matrixSize, cudaMemcpyHostToDevice );
     
     // Print initial matrices ( for debugging )
     printMatrices();
-    printParallelMatrices( hostA, hostB );
+    printParallelMatrices( deviceA, deviceB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device   
