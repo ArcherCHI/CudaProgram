@@ -171,6 +171,7 @@ int main(int argc, char **argv) {
     for ( x=0; x < N; x++ ){
         for ( y = 0; y < N; y++ ){
             hostA[x*N + y] = A[x][y];
+            hostB[x*N + y] = 0.0;
         }
     }
     
