@@ -171,8 +171,8 @@ int main(int argc, char **argv) {
     cudaMalloc((void**) &deviceB, N*N*sizeof(float));
     
     // 3. Copy data from host to device
-    cudaMemcpy( deviceA, A, N*N*sizeof(float), cudaMemcpyHostToDevice );
-    cudaMemcpy( deviceB, B, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( &deviceA, A, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( &deviceB, B, N*N*sizeof(float), cudaMemcpyHostToDevice );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device    
