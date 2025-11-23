@@ -9,7 +9,8 @@
 #include <math.h>
 
 /* Program Parameters */
-#define N 6000  /* Matrix size */
+#define N 6000              /* Matrix size */
+#define numThreads 16       /* Number of threads per block */
 
 /* Matrices */
 volatile float A[N][N], B[N][N];
@@ -29,17 +30,76 @@ void initialize_inputs() {
 
 }
 
+// Print A and B matrices
+void printMatrices() {
+    printf("A = \n");
+    int x, y;
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", A[x][y] );
+        } printf("\n");
+    }
+    printf("B = \n");
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", B[x][y] );
+        } printf("\n");
+    }     printf("\n");
+}
+
+void printParallelMatrices( float *A, float *B ){
+    printf("A = \n");
+    int x, y;
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", A[x*N + y] );
+        } printf("\n");
+    }
+    printf("B = \n");
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", B[x*N + y] );
+        } printf("\n");
+    }
+}
+
+void sequentialMatrixNorm() {
+    int row, col;
+    float mu, sigma; // Mean and Standard Deviation
+
+    printf("Sequential Computing...\n");
+
+    for (col=0; col < N; col++) {
+        mu = 0.0;
+        for (row=0; row < N; row++)
+            mu += A[row][col];
+        mu /= (float) N;
+        sigma = 0.0;
+        for (row=0; row < N; row++)
+            sigma += powf(A[row][col] - mu, 2.0);
+        sigma /= (float) N;
+        sigma = sqrt(sigma);
+        for (row=0; row < N; row++) {
+            if (sigma == 0.0)
+                B[row][col] = 0.0;
+            else
+                B[row][col] = (A[row][col] - mu) / sigma;
+        }
+    }
+    printMatrices();
+
+}
 
 /* Kernel function */
 
-__global__ void matrixNorm( float *devA, float *devB ) {
+__global__ void parallelMatrixNorm( float *devA, float *devB ) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
     
     
     // float mu, sigma; // Mean and Standard Deviation
     __shared__ float mu, sigma;
-    printf("Computing Serially.\n");
+    printf("Parallel Computing...\n");
 
     if ( col < N && row < N ) {
         int idx = row * N + col;
@@ -79,8 +139,6 @@ __global__ void matrixNorm( float *devA, float *devB ) {
     8. Return
 */
 
-
-
 int main(int argc, char **argv) {
     /* Timing variables */
     struct timeval start, stop;  /* Elapsed times using gettimeofday() */
@@ -98,41 +156,41 @@ int main(int argc, char **argv) {
     gettimeofday(&start, &tzdummy);
 
     // Define block and grid size
-    // const int numBlocks = 16;
-    const int numThreads = 16;    // Threads per block
     dim3 dimBlock( numThreads, numThreads );
     // dim3 dimGrid( numBlocks, numBlocks );
     dim3 dimGrid( N / numThreads, N / numThreads );
     
     // 1. Allocate memory space in host (CPU) for data
-    float *host;    // host data
-    host = (float*)malloc(N*N*sizeof(float));
+    float *hostA, *hostB;    // host data
+    hostA = (float*)malloc(N*N*sizeof(float));
+    hostB = (float*)malloc(N*N*sizeof(float));
     
     // 2. Allocate memory space in device (GPU) for data
-    float *deviceA, *deviceNorm;    // device data
+    float *deviceA, *deviceB;    // device data
     cudaMalloc((void**) &deviceA, N*N*sizeof(float));
-    cudaMalloc((void**) &deviceNorm, N*N*sizeof(float));
+    cudaMalloc((void**) &deviceB, N*N*sizeof(float));
     
     // 3. Copy data from host to device
-    cudaMemcpy( deviceA, host, N*N*sizeof(float), cudaMemcpyHostToDevice );
-
+    cudaMemcpy( deviceA, A, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceB, B, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    
     /* Matrix Normalization */
     // 4. Execute kernel function in device    
-        // - with CUDA syntax that defines number of threads and their physical structure
-    matrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceNorm);
+    parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
     
     // 5. Copy data from device to host
-    cudaMemcpy( host, deviceNorm, N*N*sizeof(float), cudaMemcpyDeviceToHost );
+    cudaMemcpy( hostA, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
+    cudaMemcpy( hostB, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
 
     // 6. Free memory space in device
     cudaFree(deviceA);
-    cudaFree(deviceNorm);
+    cudaFree(deviceB);
 
+    printParallelMatrices( hostA, hostB );
+    printMatrices();
     // 7. Free memory space in host
-    free(host);
-    
-    // matrixNorm();
-
+    free(hostA);
+    free(hostB);
 
     /* Stop Clock */
     gettimeofday(&stop, &tzdummy);
@@ -144,5 +202,6 @@ int main(int argc, char **argv) {
     printf("\nStopped clock.");
     printf("\n---------------------------------------------\n");
 
+    // 8. Return
     exit(0);
 }
