@@ -9,7 +9,7 @@
 #include <math.h>
 
 /* Program Parameters */
-#define N 6000              /* Matrix size */
+#define N 6              /* Matrix size */
 #define numThreads 16       /* Number of threads per block */
 
 /* Matrices */
@@ -99,25 +99,23 @@ __global__ void parallelMatrixNorm( float *devA, float *devB ) {
     
     
     // float mu, sigma; // Mean and Standard Deviation
-    __shared__ float mu, sigma;
-    printf("Parallel Computing...\n");
+    float mu, sigma;
 
-    if ( col < N && row < N ) {
-        int idx = row * N + col;
+    if ( row < N && col < N ) {
         mu = 0.0;
-        for (row=0; row < N; row++)
-            mu += devA[idx];
+        for ( row = 0; row < N; row++ )
+            mu += devA[row * N + col];
         mu /= (float) N;
         __syncthreads();
         
         sigma = 0.0;
-        for (row=0; row < N; row++)
-            sigma += powf( devA[idx] - mu, 2.0);
+        for ( row = 0; row < N; row++)
+            sigma += powf( devA[idx] - mu, 2.0 );
         sigma /= (float) N;
         __syncthreads();
         
         sigma = sqrt(sigma);
-        for (row=0; row < N; row++) {
+        for ( row = 0; row < N; row++ ) {
             int idx2 = row * N + col;
             if (sigma == 0.0)
                 devB[idx2] = 0.0;
@@ -157,35 +155,42 @@ int main(int argc, char **argv) {
     gettimeofday(&start, &tzdummy);
 
 
-
+    const int numBlocks = N + numThreads - 1 / numThreads;
     
     // Define block and grid size
     dim3 dimBlock( numThreads, numThreads );
-    // dim3 dimGrid( numBlocks, numBlocks );
-    dim3 dimGrid( N / numThreads, N / numThreads );
+    dim3 dimGrid( numBlocks,  numBlocks );
     
     // 1. Allocate memory space in host (CPU) for data
     float *hostA, *hostB;    // host data
     hostA = (float*)malloc(N*N*sizeof(float));
     hostB = (float*)malloc(N*N*sizeof(float));
+
+    int x, y;
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            hostA[x*N + y] = A[x][y];
+        }
+    }
     
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
-    cudaMalloc((void**) &deviceA, N*N*sizeof(float));
-    cudaMalloc((void**) &deviceB, N*N*sizeof(float));
+    cudaMalloc( &deviceA, N*N*sizeof(float));
+    cudaMalloc( &deviceB, N*N*sizeof(float));
     
     // 3. Copy data from host to device
-    cudaMemcpy( deviceA, A, N*N*sizeof(float), cudaMemcpyHostToDevice );
-    cudaMemcpy( deviceB, B, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceA, (void*) A, N*N*sizeof(float), cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceB, (void*) B, N*N*sizeof(float), cudaMemcpyHostToDevice );
 
     printParallelMatrices( hostA, hostB );
     
     /* Matrix Normalization */
-    // 4. Execute kernel function in device    
+    // 4. Execute kernel function in device   
+    printf("Computing Parallelly.\n");
     parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
     sequentialMatrixNorm();
     // 5. Copy data from device to host
-    cudaMemcpy( hostA, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
+    cudaMemcpy( hostA, deviceA, N*N*sizeof(float), cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
 
     // 6. Free memory space in device
