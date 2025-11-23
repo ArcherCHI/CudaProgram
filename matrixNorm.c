@@ -32,6 +32,7 @@ void initialize_inputs() {
 
 // Print A and B matrices
 void printMatrices() {
+    printf("Printing Sequential Matrices\n");
     printf("A = \n");
     int x, y;
     for ( x=0; x < N; x++ ){
@@ -48,6 +49,7 @@ void printMatrices() {
 }
 
 void printParallelMatrices( float *A, float *B ){
+    printf("Printing Parallel Matrices\n");
     printf("A = \n");
     int x, y;
     for ( x=0; x < N; x++ ){
@@ -86,7 +88,6 @@ void sequentialMatrixNorm() {
                 B[row][col] = (A[row][col] - mu) / sigma;
         }
     }
-    printMatrices();
 
 }
 
@@ -147,7 +148,7 @@ int main(int argc, char **argv) {
 
     /* Initialize A and B */
     initialize_inputs();
-
+    printMatrices();
 
     /* Start Clock */
     printf("\n---------------------------------------------\n");
@@ -155,6 +156,9 @@ int main(int argc, char **argv) {
     printf("\nStarting clock.\n\n");
     gettimeofday(&start, &tzdummy);
 
+
+
+    
     // Define block and grid size
     dim3 dimBlock( numThreads, numThreads );
     // dim3 dimGrid( numBlocks, numBlocks );
@@ -173,11 +177,13 @@ int main(int argc, char **argv) {
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, A, N*N*sizeof(float), cudaMemcpyHostToDevice );
     cudaMemcpy( deviceB, B, N*N*sizeof(float), cudaMemcpyHostToDevice );
+
+    printParallelMatrices( hostA, hostB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device    
     parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
-    
+    sequentialMatrixNorm();
     // 5. Copy data from device to host
     cudaMemcpy( hostA, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, N*N*sizeof(float), cudaMemcpyDeviceToHost );
