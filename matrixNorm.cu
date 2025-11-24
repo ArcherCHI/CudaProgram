@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
     
     // Print initial matrices ( for debugging )
     printMatrices();
-    printParallelMatrices( deviceA, deviceB );
+    printParallelMatrices( hostA, hostB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device   
@@ -209,8 +209,8 @@ int main(int argc, char **argv) {
     printParallelMatrices( hostA, hostB );
     printMatrices();
     // 7. Free memory space in host
-    free(hostA);
-    free(hostB);
+    cudaFree(hostA);
+    cudaFree(hostB);
 
     /* Stop Clock */
     gettimeofday(&stop, &tzdummy);
