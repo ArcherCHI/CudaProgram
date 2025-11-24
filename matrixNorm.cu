@@ -169,15 +169,16 @@ int main(int argc, char **argv) {
     float *hostA, *hostB;    // host data
     hostA = (float*)malloc( matrixSize );
     hostB = (float*)malloc( matrixSize );
-    cudaMemcpy( hostA, (void*) A, matrixSize, cudaMemcpyHostToDevice );
-    cudaMemcpy( hostB, (void*) B, matrixSize, cudaMemcpyHostToDevice );
-    // int x, y;
-    // for ( x=0; x < N; x++ ){
-    //     for ( y = 0; y < N; y++ ){
-    //         hostA[x*N + y] = A[x][y];
-    //         hostB[x*N + y] = 0.0;
-    //     }
-    // }
+    if ( hostA == NULL || hostB == NULL ) 
+        printf("Error allocating memory on host\n");
+    
+    int x, y;
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            hostA[x*N + y] = A[x][y];
+            hostB[x*N + y] = 0.0;
+        }
+    }
     
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
@@ -202,12 +203,13 @@ int main(int argc, char **argv) {
     cudaMemcpy( hostA, deviceA, matrixSize, cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, matrixSize, cudaMemcpyDeviceToHost );
 
+    printParallelMatrices( hostA, hostB );
+    printMatrices();
+
     // 6. Free memory space in device
     cudaFree(deviceA);
     cudaFree(deviceB);
-
-    printParallelMatrices( hostA, hostB );
-    printMatrices();
+    
     // 7. Free memory space in host
     cudaFree(hostA);
     cudaFree(hostB);
