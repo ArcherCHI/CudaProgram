@@ -167,8 +167,8 @@ int main(int argc, char **argv) {
     
     // 1. Allocate memory space in host (CPU) for data
     float *hostA, *hostB;    // host data
-    hostA = (float*)malloc( matrixSize );
-    hostB = (float*)malloc( matrixSize );
+    hostA = (float*) malloc( matrixSize );
+    hostB = (float*) malloc( matrixSize );
     if ( hostA == NULL || hostB == NULL ) 
         printf("Error allocating memory on host\n");
     
@@ -182,8 +182,8 @@ int main(int argc, char **argv) {
     
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
-    cudaMalloc( &deviceA, matrixSize );
-    cudaMalloc( &deviceB, matrixSize );
+    cudaMalloc((void**) &deviceA, matrixSize );
+    cudaMalloc((void**) &deviceB, matrixSize );
     
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, hostA, matrixSize, cudaMemcpyHostToDevice );
@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
     
     // Print initial matrices ( for debugging )
     printMatrices();
-    printParallelMatrices( hostA, hostB );
+    printParallelMatrices( deviceA, deviceB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device   
@@ -211,8 +211,8 @@ int main(int argc, char **argv) {
     cudaFree(deviceB);
     
     // 7. Free memory space in host
-    cudaFree(hostA);
-    cudaFree(hostB);
+    free(hostA);
+    free(hostB);
 
     /* Stop Clock */
     gettimeofday(&stop, &tzdummy);
