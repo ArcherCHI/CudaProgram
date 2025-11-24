@@ -50,19 +50,19 @@ void printMatrices() {
     }     printf("\n");
 }
 
-void printParallelMatrices( float *A, float *B ){
+void printParallelMatrices( float* m1, float* m2 ){
     printf("Printing Parallel Matrices\n");
     printf("A = \n");
     int x, y;
     for ( x=0; x < N; x++ ){
         for ( y = 0; y < N; y++ ){
-            printf("%f ", A[x*N + y] );
+            printf("%f ", m1[x*N + y] );
         } printf("\n");
     }
     printf("B = \n");
     for ( x=0; x < N; x++ ){
         for ( y = 0; y < N; y++ ){
-            printf("%f ", B[x*N + y] );
+            printf("%f ", m2[x*N + y] );
         } printf("\n");
     }
 }
