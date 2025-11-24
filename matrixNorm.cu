@@ -197,13 +197,14 @@ int main(int argc, char **argv) {
     // 4. Execute kernel function in device   
     printf("Parallel Computing...\n");
     parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
+    printParallelMatrices( hostA, hostB );
     sequentialMatrixNorm();
     
     // 5. Copy data from device to host
     cudaMemcpy( hostA, deviceA, matrixSize, cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, matrixSize, cudaMemcpyDeviceToHost );
 
-    printParallelMatrices( hostA, hostB );
+    // printParallelMatrices( hostA, hostB );
     printMatrices();
 
     // 6. Free memory space in device
