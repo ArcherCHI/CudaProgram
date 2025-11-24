@@ -191,7 +191,7 @@ int main(int argc, char **argv) {
     
     // Print initial matrices ( for debugging )
     printMatrices();
-    printParallelMatrices( deviceA, deviceB );
+    printParallelMatrices( hostA, hostB );
     
     /* Matrix Normalization */
     // 4. Execute kernel function in device   
