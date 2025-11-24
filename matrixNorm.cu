@@ -10,7 +10,7 @@
 
 /* Program Parameters */
 #define N 6              /* Matrix size */
-#define numThreads 16       /* Number of threads per block */
+#define numThreads 2       /* Number of threads per block */
 
 const size_t matrixSize = N * N * sizeof(float);
 
@@ -98,7 +98,7 @@ void sequentialMatrixNorm() {
 __global__ void parallelMatrixNorm( float *devA, float *devB ) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
     int row = blockIdx.y * blockDim.y + threadIdx.y;
-    
+    printf("Working on ( %d, %d )...\n", row, col );
     
     // float mu, sigma; // Mean and Standard Deviation
     float mu, sigma;
