@@ -183,8 +183,23 @@ int main(int argc, char **argv) {
     
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
-    cudaMalloc((void**) &deviceA, matrixSize );
-    cudaMalloc((void**) &deviceB, matrixSize );
+
+    cudaError_t err;
+
+    err = cudaMalloc(&deviceA, matrixSize );
+    if (err != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc deviceA failed: %s\n", cudaGetErrorString(err));
+        exit(1);
+    }
+    
+    err = cudaMalloc(&deviceB, matrixSize );
+    if (err != cudaSuccess) {
+        fprintf(stderr, "cudaMalloc deviceB failed: %s\n", cudaGetErrorString(err));
+        exit(1);
+    }
+
+    //cudaMalloc((void**) &deviceA, matrixSize );
+    //cudaMalloc((void**) &deviceB, matrixSize );
     
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, hostA, matrixSize, cudaMemcpyHostToDevice );
