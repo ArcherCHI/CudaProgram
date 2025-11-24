@@ -35,36 +35,38 @@ void initialize_inputs() {
 // Print A and B matrices
 void printMatrices() {
     printf("Printing Sequential Matrices\n");
-    printf("A = \n");
+    printf("A[N-1] = \n");
     int x, y;
-    for ( x=0; x < N; x++ ){
-        for ( y = 0; y < N; y++ ){
-            printf("%f ", A[x][y] );
-        } printf("\n");
-    }
-    printf("B = \n");
-    for ( x=0; x < N; x++ ){
-        for ( y = 0; y < N; y++ ){
-            printf("%f ", B[x][y] );
-        } printf("\n");
-    }     printf("\n");
+   // for ( x=0; x < N; x++ ){
+    for ( y = 0; y < N; y++ ){
+        printf("%f ", A[N-1][y] );
+    } 
+    printf("\n");
+    //}
+    printf("B[N-1] = \n");
+    //for ( x=0; x < N; x++ ){
+    for ( y = 0; y < N; y++ ){
+        printf("%f ", B[N-1][y] );
+    } printf("\n");
+    //}     
+    printf("\n");
 }
 
 void printParallelMatrices( float* m1, float* m2 ){
     printf("Printing Parallel Matrices\n");
     printf("A = \n");
     int x, y;
-    for ( x=0; x < N; x++ ){
-        for ( y = 0; y < N; y++ ){
-            printf("%f ", m1[x*N + y] );
-        } printf("\n");
-    }
+    //for ( x=0; x < N; x++ ){
+    for ( y = 0; y < N; y++ ){
+        printf("%f ", m1[(N-1)*N + y] );
+    } printf("\n");
+    //}
     printf("B = \n");
-    for ( x=0; x < N; x++ ){
-        for ( y = 0; y < N; y++ ){
-            printf("%f ", m2[x*N + y] );
-        } printf("\n");
-    }
+    //for ( x=0; x < N; x++ ){
+    for ( y = 0; y < N; y++ ){
+        printf("%f ", m2[(N-1)*N + y] );
+    } printf("\n");
+    //}
 }
 
 void sequentialMatrixNorm() {
@@ -157,13 +159,12 @@ int main(int argc, char **argv) {
     printf("Matrix size N = %d", N);
     printf("\nStarting clock.\n\n");
     gettimeofday(&start, &tzdummy);
-
-
-    const int numBlocks = (N + numThreads - 1) / numThreads;
+    
+    const int blockSize = 16;
     
     // Define block and grid size
     dim3 dimBlock( numThreads, numThreads );
-    dim3 dimGrid( numBlocks,  numBlocks );
+    dim3 dimGrid( blockSize,  blockSize );
     
     // 1. Allocate memory space in host (CPU) for data
     float *hostA, *hostB;    // host data
