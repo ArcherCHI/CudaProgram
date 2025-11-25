@@ -197,8 +197,8 @@ int main(int argc, char **argv) {
     }
     
     // 3. Copy data from host to device
-    cudaMemcpy( deviceA, hostA, matrixSize, cudaMemcpyHostToDevice );
-    cudaMemcpy( deviceB, hostB, matrixSize, cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceA, A, matrixSize, cudaMemcpyHostToDevice );
+    cudaMemcpy( deviceB, B, matrixSize, cudaMemcpyHostToDevice );
     
     // Print initial matrices ( for debugging )
     printMatrices();
