@@ -9,8 +9,8 @@
 #include <math.h>
 
 /* Program Parameters */
-#define N 6              /* Matrix size */
-#define numThreads 2       /* Number of threads per block */
+#define N 6000              /* Matrix size */
+#define numThreads 16       /* Number of threads per block */
 
 const size_t matrixSize = N * N * sizeof(float);
 
@@ -35,20 +35,20 @@ void initialize_inputs() {
 // Print A and B matrices
 void printMatrices() {
     printf("Printing Sequential Matrices\n");
-    printf("A[N-1] = \n");
+    printf("A = \n");
     int x, y;
-   // for ( x=0; x < N; x++ ){
-    for ( y = 0; y < N; y++ ){
-        printf("%f ", A[N-1][y] );
-    } 
-    printf("\n");
-    //}
-    printf("B[N-1] = \n");
-    //for ( x=0; x < N; x++ ){
-    for ( y = 0; y < N; y++ ){
-        printf("%f ", B[N-1][y] );
-    } printf("\n");
-    //}     
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", A[x][y] );
+        } 
+        printf("\n");
+    }
+    printf("B = \n");
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", B[x][y] );
+        } printf("\n");
+    }     
     printf("\n");
 }
 
@@ -56,17 +56,17 @@ void printParallelMatrices( float* m1, float* m2 ){
     printf("Printing Parallel Matrices\n");
     printf("A = \n");
     int x, y;
-    //for ( x=0; x < N; x++ ){
-    for ( y = 0; y < N; y++ ){
-        printf("%f ", m1[(N-1)*N + y] );
-    } printf("\n");
-    //}
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", m1[x*N + y] );
+        } printf("\n");
+    }
     printf("B = \n");
-    //for ( x=0; x < N; x++ ){
-    for ( y = 0; y < N; y++ ){
-        printf("%f ", m2[(N-1)*N + y] );
-    } printf("\n");
-    //}
+    for ( x=0; x < N; x++ ){
+        for ( y = 0; y < N; y++ ){
+            printf("%f ", m2[x*N + y] );
+        } printf("\n");
+    }
 }
 
 void sequentialMatrixNorm() {
@@ -99,16 +99,13 @@ void sequentialMatrixNorm() {
 
 __global__ void parallelMatrixNorm( float *devA, float *devB ) {
     int col = blockIdx.x * blockDim.x + threadIdx.x;
-    int row = blockIdx.y * blockDim.y + threadIdx.y;
-    printf("Working on ( %d, %d )...\n", row, col );
-    
-    // float mu, sigma; // Mean and Standard Deviation
-    float mu, sigma;
+    float mu, sigma; // Mean and Standard Deviation
 
-    if ( row < N && col < N ) {
+    if ( col < N ) {
         mu = 0.0;
         int r;
         for ( r = 0; r < N; r++ )
+            // Flatten 2D array for correct indexing
             mu += devA[r * N + col];
         mu /= (float) N;
         __syncthreads();
@@ -172,7 +169,8 @@ int main(int argc, char **argv) {
     hostB = (float*) malloc( matrixSize );
     if ( hostA == NULL || hostB == NULL ) 
         printf("Error allocating memory on host\n");
-    
+
+    // Initialize host data
     int x, y;
     for ( x=0; x < N; x++ ){
         for ( y = 0; y < N; y++ ){
@@ -184,8 +182,8 @@ int main(int argc, char **argv) {
     // 2. Allocate memory space in device (GPU) for data
     float *deviceA, *deviceB;    // device data
 
+    // Error checking for failed allocation of GPU devices
     cudaError_t err;
-
     err = cudaMalloc(&deviceA, matrixSize );
     if (err != cudaSuccess) {
         fprintf(stderr, "cudaMalloc deviceA failed: %s\n", cudaGetErrorString(err));
@@ -197,9 +195,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "cudaMalloc deviceB failed: %s\n", cudaGetErrorString(err));
         exit(1);
     }
-
-    //cudaMalloc((void**) &deviceA, matrixSize );
-    //cudaMalloc((void**) &deviceB, matrixSize );
     
     // 3. Copy data from host to device
     cudaMemcpy( deviceA, hostA, matrixSize, cudaMemcpyHostToDevice );
@@ -213,14 +208,14 @@ int main(int argc, char **argv) {
     // 4. Execute kernel function in device   
     printf("Parallel Computing...\n");
     parallelMatrixNorm<<<dimGrid, dimBlock>>>(deviceA, deviceB);
-    printParallelMatrices( hostA, hostB );
     sequentialMatrixNorm();
     
     // 5. Copy data from device to host
     cudaMemcpy( hostA, deviceA, matrixSize, cudaMemcpyDeviceToHost );
     cudaMemcpy( hostB, deviceB, matrixSize, cudaMemcpyDeviceToHost );
 
-    // printParallelMatrices( hostA, hostB );
+    // Print final results to compare parallel and sequential matrix normalization
+    printParallelMatrices( hostA, hostB );
     printMatrices();
 
     // 6. Free memory space in device
@@ -234,7 +229,6 @@ int main(int argc, char **argv) {
     /* Stop Clock */
     gettimeofday(&stop, &tzdummy);
     runtime = (unsigned long long)(stop.tv_sec - start.tv_sec) * 1000000 + (stop.tv_usec - start.tv_usec);
-
 
     /* Display timing results */
     printf("Runtime = %g ms.\n", (float)runtime/(float)1000);
